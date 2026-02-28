@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.css": "/planet-model/static/css/main.e6c13ad2.css",
+    "main.js": "/planet-model/static/js/main.5ed7bea3.js",
+    "static/js/8.0aa93ef8.chunk.js": "/planet-model/static/js/8.0aa93ef8.chunk.js",
+    "static/js/453.4caedcdb.chunk.js": "/planet-model/static/js/453.4caedcdb.chunk.js",
+    "index.html": "/planet-model/index.html",
+    "main.e6c13ad2.css.map": "/planet-model/static/css/main.e6c13ad2.css.map",
+    "main.5ed7bea3.js.map": "/planet-model/static/js/main.5ed7bea3.js.map",
+    "8.0aa93ef8.chunk.js.map": "/planet-model/static/js/8.0aa93ef8.chunk.js.map",
+    "453.4caedcdb.chunk.js.map": "/planet-model/static/js/453.4caedcdb.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e6c13ad2.css",
+    "static/js/main.5ed7bea3.js"
+  ]
+}
