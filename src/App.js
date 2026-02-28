@@ -429,7 +429,12 @@ export default function PlantAssistant() {
 
     // Auto-ask the chat model
     setLoading(true);
-    const autoQ = `أجب باللغة العربية فقط. لا تجيب باي لغه اطلاقا غير العربي ${detectedDisease} ما هي طرق علاجه؟`;
+    let autoQ;
+    if(!detectedDisease.includes("healthy")){
+     autoQ = `أجب باللغة العربية فقط. لا تجيب باي لغه اطلاقا غير العربي ${detectedDisease} ما هي طرق علاجه؟`;}
+    else{
+      autoQ=`كيفيه المحافظه علي ${detectedDisease}`
+    }
     try {
       const client = await Client.connect("abdallah110/Planet-model");
       const result = await client.predict("/ask_in_disease", {
