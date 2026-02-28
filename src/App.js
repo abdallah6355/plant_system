@@ -431,7 +431,7 @@ export default function PlantAssistant() {
     setLoading(true);
     let autoQ;
     if(!detectedDisease.includes("healthy")){
-     autoQ = `أجب باللغة العربية فقط. لا تجيب باي لغه اطلاقا غير العربي ${detectedDisease} ما هي طرق علاجه؟`;}
+     autoQ = `أجب باللغة العربية فقط. لا تجيب باي لغه اطلاقا غير العربي ${detectedDisease} ما هي طرق علاج`;}
     else{
       autoQ=` كيفيه المحافظه علي اجب باللغه العربيه فقط لا تجب باي لغه اطلاقا غير العربي${detectedDisease}`
     }
