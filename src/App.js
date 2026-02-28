@@ -433,7 +433,7 @@ export default function PlantAssistant() {
     if(!detectedDisease.includes("healthy")){
      autoQ = `أجب باللغة العربية فقط. لا تجيب باي لغه اطلاقا غير العربي ${detectedDisease} ما هي طرق علاجه؟`;}
     else{
-      autoQ=`كيفيه المحافظه علي ${detectedDisease}`
+      autoQ=` كيفيه المحافظه علي اجب باللغه العربيه فقط لا تجب باي لغه اطلاقا غير العربي${detectedDisease}`
     }
     try {
       const client = await Client.connect("abdallah110/Planet-model");
