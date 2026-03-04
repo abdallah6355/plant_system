@@ -281,6 +281,27 @@ const styles = `
   .footer-hint { font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 9px; }
 `;
 
+const DISEASE_INFO = {
+  Tomato_Early_Blight: "Tomato___Early_blight",
+  Tomato_Late_Blight: "Tomato___Late_blight",
+  Tomato_Bacterial_Spot: "Tomato___Bacterial_spot",
+  Tomato_Septoria_Leaf_Spot: "Tomato___Septoria_leaf_spot",
+  Tomato_Spider_Mites: "Tomato___Spider_mites Two-spotted_spider_mite",
+  Tomato_Leaf_Mold: "Tomato___Leaf_Mold",
+  Tomato_Yellow_Curl_Virus: "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+  Tomato_Mosaic_Virus: "Tomato___Tomato_mosaic_virus",
+  Tomato_Healthy: "Tomato___healthy",
+  Pepper_Bacterial_Spot: "Pepper,_bell___Bacterial_spot",
+  Pepper_Healthy: "Pepper,_bell___healthy",
+  Potato_Early_Blight: "Potato___Early_blight",
+  Potato_Late_Blight: "Potato___Late_blight",
+  Corn_Common_Rust: "Corn_(maize)___Common_rust_",
+  Corn_Northern_Leaf_Blight: "Corn_(maize)___Northern_Leaf_Blight",
+  Corn_Gray_Leaf_Spot: "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+  Apple_Scab: "Apple___Apple_scab",
+  Apple_Black_Rot: "Apple___Black_rot",
+  Grape_Black_Rot: "Grape___Black_rot",
+};
 function getTime() {
   return new Date().toLocaleTimeString("ar-EG", {
     hour: "2-digit",
@@ -406,7 +427,7 @@ export default function PlantAssistant() {
     }
 
     // ✅ ثقة عالية — تشخيص موثوق
-    setDisease(detectedDisease);
+    setDisease(DISEASE_INFO[detectedDisease]);
     setMessages((prev) => [
       ...prev,
       {
@@ -428,7 +449,7 @@ export default function PlantAssistant() {
       const client = await Client.connect("abdallah110/Planet-model");
       const result = await client.predict("/ask_in_disease", {
         question: autoQ,
-        disease_name: detectedDisease,
+        disease_name: DISEASE_INFO[detectedDisease],
       });
       setMessages((prev) => [
         ...prev,
