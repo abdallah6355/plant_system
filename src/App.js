@@ -4,7 +4,7 @@ import { Client } from "@gradio/client";
 const HUGGINGFACE_URL =
   typeof process !== "undefined" && process.env?.NEXT_PUBLIC_MODEL_SERVER_URL
     ? process.env.NEXT_PUBLIC_MODEL_SERVER_URL
-    : "https://abdulrhmanhelmy-plant-disease-inference-api.hf.space/predict";
+    : "https://abdallah110-cnnn.hf.space/predict";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Cairo:wght@300;400;600;700&display=swap');
