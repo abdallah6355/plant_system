@@ -96,31 +96,6 @@ const styles = `
     50% { opacity:0.6; transform:scale(0.85); }
   }
 
-  .disease-bar {
-    position: relative; z-index: 10;
-    padding: 9px 28px;
-    background: rgba(10,15,10,0.92);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-  }
-
-  .disease-label { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
-
-  .disease-input {
-    flex: 1;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 12px;
-    color: var(--text);
-    font-family: 'Tajawal', sans-serif;
-    font-size: 13px; outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    direction: rtl;
-  }
-  .disease-input:focus { border-color: var(--green-dim); box-shadow: 0 0 0 3px rgba(76,175,80,0.08); }
-  .disease-input::placeholder { color: var(--text-dim); }
-
   .messages {
     flex: 1; overflow-y: auto;
     padding: 24px 28px;
@@ -347,14 +322,16 @@ export default function PlantAssistant() {
     if (!imageFile || isBusy) return;
 
     const previewSrc = imagePreview;
-    const imgMsg = {
-      role: "user",
-      type: "image",
-      src: previewSrc,
-      text: "صورة نبات",
-      time: getTime(),
-    };
-    setMessages((prev) => [...prev, imgMsg]);
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "user",
+        type: "image",
+        src: previewSrc,
+        text: "صورة نبات",
+        time: getTime(),
+      },
+    ]);
     setImageFile(null);
     setImagePreview(null);
     setAnalyzingImage(true);
@@ -375,33 +352,60 @@ export default function PlantAssistant() {
 
       if (resp.ok) {
         const data = await resp.json();
-        // ✅ متوافق مع الـ API بتاعنا
         detectedDisease = data.prediction || null;
-        confidence = data.confidence != null ? `${data.confidence}%` : null;
-      } else {
-        detectedDisease = "Tomato_Late_Blight";
-        confidence = "97.4%";
+        // confidence من الـ API بيجي كـ number مثلاً 97.5
+        confidence =
+          data.confidence != null ? parseFloat(data.confidence) : null;
       }
     } catch {
-      detectedDisease = "Tomato_Late_Blight";
-      confidence = "97.4%";
+      // فشل الاتصال
     }
 
     setAnalyzingImage(false);
 
-    if (!detectedDisease) {
+    // ── منطق الـ confidence ──────────────────────────
+    if (!detectedDisease || confidence === null) {
       setMessages((prev) => [
         ...prev,
         {
           role: "bot",
           type: "text",
-          text: "❌ لم أستطع التعرف على المرض من الصورة، حاول صورة أوضح.",
+          text: "❌ لم أستطع تحليل الصورة، حاول مرة أخرى.",
           time: getTime(),
         },
       ]);
       return;
     }
 
+    if (confidence < 25) {
+      // ثقة منخفضة جداً — مش ورقة نبات
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          type: "text",
+          text: "❌ هذه ليست صورة ورقة نبات، يرجى رفع صورة واضحة لورقة نبات.",
+          time: getTime(),
+        },
+      ]);
+      return;
+    }
+
+    if (confidence < 50) {
+      // ثقة متوسطة — صورة غير واضحة
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "bot",
+          type: "text",
+          text: "⚠️ الصورة غير واضحة أو المرض غير مدعوم حالياً، حاول صورة أوضح.",
+          time: getTime(),
+        },
+      ]);
+      return;
+    }
+
+    // ✅ ثقة عالية — تشخيص موثوق
     setDisease(detectedDisease);
     setMessages((prev) => [
       ...prev,
@@ -409,18 +413,16 @@ export default function PlantAssistant() {
         role: "bot",
         type: "detection",
         disease: detectedDisease,
-        confidence,
+        confidence: `${confidence}%`,
         time: getTime(),
       },
     ]);
 
+    // ── استشارة الـ LLM ──────────────────────────────
     setLoading(true);
-    let autoQ;
-    if (!detectedDisease.includes("Healthy")) {
-      autoQ = `أجب باللغة العربية فقط. لا تجيب بأي لغة أخرى. ما هي طرق علاج ${detectedDisease}`;
-    } else {
-      autoQ = `أجب باللغة العربية فقط. لا تجيب بأي لغة أخرى. كيفية المحافظة على ${detectedDisease}`;
-    }
+    const autoQ = detectedDisease.includes("Healthy")
+      ? `أجب باللغة العربية فقط. كيفية المحافظة على ${detectedDisease}`
+      : `أجب باللغة العربية فقط. ما هي طرق علاج ${detectedDisease}`;
 
     try {
       const client = await Client.connect("abdallah110/Planet-model");
@@ -430,7 +432,12 @@ export default function PlantAssistant() {
       });
       setMessages((prev) => [
         ...prev,
-        { role: "bot", type: "text", text: result.data[0], time: getTime() },
+        {
+          role: "bot",
+          type: "text",
+          text: result.data[0],
+          time: getTime(),
+        },
       ]);
     } catch {
       setMessages((prev) => [
@@ -457,7 +464,12 @@ export default function PlantAssistant() {
 
     setMessages((prev) => [
       ...prev,
-      { role: "user", type: "text", text: q, time: getTime() },
+      {
+        role: "user",
+        type: "text",
+        text: q,
+        time: getTime(),
+      },
     ]);
     setQuestion("");
     setLoading(true);
@@ -472,7 +484,12 @@ export default function PlantAssistant() {
       .then((result) => {
         setMessages((prev) => [
           ...prev,
-          { role: "bot", type: "text", text: result.data[0], time: getTime() },
+          {
+            role: "bot",
+            type: "text",
+            text: result.data[0],
+            time: getTime(),
+          },
         ]);
       })
       .catch(() => {
