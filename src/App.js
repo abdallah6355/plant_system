@@ -1,10 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Client } from "@gradio/client";
 
-const HUGGINGFACE_URL =
-  typeof process !== "undefined" && process.env?.NEXT_PUBLIC_MODEL_SERVER_URL
-    ? process.env.NEXT_PUBLIC_MODEL_SERVER_URL
-    : "https://abdallah110-cnnn.hf.space/predict";
+const HUGGINGFACE_URL = "https://abdallah110-cnnn.hf.space/predict";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Cairo:wght@300;400;600;700&display=swap');
@@ -219,7 +216,6 @@ const styles = `
     30% { transform:translateY(-6px); background:var(--green); }
   }
 
-  /* ── Input area ── */
   .input-area {
     position: relative; z-index: 10;
     padding: 14px 28px 18px;
@@ -242,7 +238,6 @@ const styles = `
   .img-remove-btn { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; padding: 4px; transition: color 0.15s; }
   .img-remove-btn:hover { color: #e57373; }
 
-  /* RTL row: send on RIGHT, textarea center, image on LEFT */
   .input-row { display: flex; gap: 10px; align-items: flex-end; }
 
   .input-box {
@@ -269,7 +264,6 @@ const styles = `
   .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
   .action-btn:active:not(:disabled) { transform: scale(0.94) !important; }
 
-  /* Send — order:1 → appears on RIGHT in RTL layout */
   .send-btn {
     order: 1;
     background: linear-gradient(135deg, #2d5a2d, #3a6a3a);
@@ -281,7 +275,6 @@ const styles = `
     box-shadow: 0 4px 28px rgba(76,175,80,0.3); transform: translateY(-1px);
   }
 
-  /* Image — order:3 → appears on LEFT in RTL layout */
   .image-btn {
     order: 3;
     background: linear-gradient(135deg, #1a2a3a, #1e3348);
@@ -350,7 +343,6 @@ export default function PlantAssistant() {
 
   const isBusy = loading || analyzingImage;
 
-  // ── Send image flow ───────────────────────────────────────────
   const handleImageSend = async () => {
     if (!imageFile || isBusy) return;
 
@@ -383,20 +375,15 @@ export default function PlantAssistant() {
 
       if (resp.ok) {
         const data = await resp.json();
-        detectedDisease = data.predicted_label || null;
-        confidence =
-          typeof data.confidence === "string"
-            ? data.confidence
-            : data.confidence != null
-              ? `${(data.confidence * 100).toFixed(1)}%`
-              : null;
+        // ✅ متوافق مع الـ API بتاعنا
+        detectedDisease = data.prediction || null;
+        confidence = data.confidence != null ? `${data.confidence}%` : null;
       } else {
-        // Demo fallback for 403 / 5xx
-        detectedDisease = "Tomato___Late_blight";
+        detectedDisease = "Tomato_Late_Blight";
         confidence = "97.4%";
       }
     } catch {
-      detectedDisease = "Tomato___Late_blight";
+      detectedDisease = "Tomato_Late_Blight";
       confidence = "97.4%";
     }
 
@@ -427,14 +414,14 @@ export default function PlantAssistant() {
       },
     ]);
 
-    // Auto-ask the chat model
     setLoading(true);
     let autoQ;
-    if(!detectedDisease.includes("healthy")){
-     autoQ = `أجب باللغة العربية فقط. لا تجيب باي لغه اطلاقا غير العربي ${detectedDisease} ما هي طرق علاج`;}
-    else{
-      autoQ=` كيفيه المحافظه علي اجب باللغه العربيه فقط لا تجب باي لغه اطلاقا غير العربي${detectedDisease}`
+    if (!detectedDisease.includes("Healthy")) {
+      autoQ = `أجب باللغة العربية فقط. لا تجيب بأي لغة أخرى. ما هي طرق علاج ${detectedDisease}`;
+    } else {
+      autoQ = `أجب باللغة العربية فقط. لا تجيب بأي لغة أخرى. كيفية المحافظة على ${detectedDisease}`;
     }
+
     try {
       const client = await Client.connect("abdallah110/Planet-model");
       const result = await client.predict("/ask_in_disease", {
@@ -460,7 +447,6 @@ export default function PlantAssistant() {
     }
   };
 
-  // ── Send text flow ────────────────────────────────────────────
   const handleSend = () => {
     if (imageFile) {
       handleImageSend();
@@ -523,7 +509,6 @@ export default function PlantAssistant() {
       <div className="bg-grid" />
       <div className="bg-orb" />
       <div className="app">
-        {/* Header */}
         <div className="header">
           <div className="header-icon">🌿</div>
           <div className="header-text">
@@ -535,9 +520,6 @@ export default function PlantAssistant() {
           </div>
         </div>
 
-      
-
-        {/* Messages */}
         <div className="messages">
           {messages.length === 0 && !isBusy ? (
             <div className="empty-state">
@@ -577,7 +559,7 @@ export default function PlantAssistant() {
                       <div className="msg-bubble">
                         <div>🔍 تم التعرف على المرض:</div>
                         <div className="disease-tag">
-                          🦠 {msg.disease}
+                          🦠 {msg.disease.replace(/_/g, " ")}
                           {msg.confidence && (
                             <span style={{ opacity: 0.7 }}>
                               · {msg.confidence}
@@ -620,7 +602,6 @@ export default function PlantAssistant() {
           )}
         </div>
 
-        {/* Input area */}
         <div className="input-area">
           {imagePreview && (
             <div className="img-preview-strip">
@@ -636,7 +617,6 @@ export default function PlantAssistant() {
           )}
 
           <div className="input-row">
-            {/* SEND — RIGHT (order 1) */}
             <button
               className="action-btn send-btn"
               onClick={handleSend}
@@ -644,7 +624,6 @@ export default function PlantAssistant() {
               {isBusy ? <div className="spinner" /> : "↑"}
             </button>
 
-            {/* TEXTAREA — CENTER (order 2) */}
             <textarea
               ref={textareaRef}
               className="input-box"
@@ -663,7 +642,6 @@ export default function PlantAssistant() {
               }}
             />
 
-            {/* IMAGE — LEFT (order 3) */}
             <button
               className={`action-btn image-btn${imageFile ? " has-image" : ""}`}
               disabled={isBusy}
