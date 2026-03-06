@@ -302,6 +302,7 @@ const DISEASE_INFO = {
   Apple_Black_Rot: "Apple___Black_rot",
   Grape_Black_Rot: "Grape___Black_rot",
 };
+
 function getTime() {
   return new Date().toLocaleTimeString("ar-EG", {
     hour: "2-digit",
@@ -374,7 +375,6 @@ export default function PlantAssistant() {
       if (resp.ok) {
         const data = await resp.json();
         detectedDisease = data.prediction || null;
-        // confidence من الـ API بيجي كـ number مثلاً 97.5
         confidence =
           data.confidence != null ? parseFloat(data.confidence) : null;
       }
@@ -384,7 +384,6 @@ export default function PlantAssistant() {
 
     setAnalyzingImage(false);
 
-    // ── منطق الـ confidence ──────────────────────────
     if (!detectedDisease || confidence === null) {
       setMessages((prev) => [
         ...prev,
@@ -399,7 +398,6 @@ export default function PlantAssistant() {
     }
 
     if (confidence < 25) {
-      // ثقة منخفضة جداً — مش ورقة نبات
       setMessages((prev) => [
         ...prev,
         {
@@ -413,7 +411,6 @@ export default function PlantAssistant() {
     }
 
     if (confidence < 50) {
-      // ثقة متوسطة — صورة غير واضحة
       setMessages((prev) => [
         ...prev,
         {
@@ -451,15 +448,33 @@ export default function PlantAssistant() {
         question: autoQ,
         disease_name: DISEASE_INFO[detectedDisease],
       });
+
+      const fullText = result.data[0];
+      let i = 0;
+
       setMessages((prev) => [
         ...prev,
-        {
-          role: "bot",
-          type: "text",
-          text: result.data[0],
-          time: getTime(),
-        },
+        { role: "bot", type: "text", text: "", time: getTime() },
       ]);
+
+      setLoading(false)
+      await new Promise((resolve) => {
+        const interval = setInterval(() => {
+          i++;
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              text: fullText.slice(0, i),
+            };
+            return updated;
+          });
+          if (i >= fullText.length) {
+            clearInterval(interval);
+            resolve();
+          }
+        }, 18);
+      });
     } catch {
       setMessages((prev) => [
         ...prev,
@@ -485,12 +500,7 @@ export default function PlantAssistant() {
 
     setMessages((prev) => [
       ...prev,
-      {
-        role: "user",
-        type: "text",
-        text: q,
-        time: getTime(),
-      },
+      { role: "user", type: "text", text: q, time: getTime() },
     ]);
     setQuestion("");
     setLoading(true);
@@ -503,15 +513,26 @@ export default function PlantAssistant() {
         }),
       )
       .then((result) => {
+        const fullText = result.data[0];
+        let i = 0;
+
         setMessages((prev) => [
           ...prev,
-          {
-            role: "bot",
-            type: "text",
-            text: result.data[0],
-            time: getTime(),
-          },
+          { role: "bot", type: "text", text: "", time: getTime() },
         ]);
+
+        const interval = setInterval(() => {
+          i++;
+          setMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...updated[updated.length - 1],
+              text: fullText.slice(0, i),
+            };
+            return updated;
+          });
+          if (i >= fullText.length) clearInterval(interval);
+        }, 18);
       })
       .catch(() => {
         setMessages((prev) => [
