@@ -443,7 +443,7 @@ export default function PlantAssistant() {
       : `أجب باللغة العربية فقط. ما هي طرق علاج ${detectedDisease}`;
 
     try {
-      const client = await Client.connect("abdallah110/Planet-model");
+      const client = await Client.connect("abdallah110/Planet-modell");
       const result = await client.predict("/ask_in_disease", {
         question: autoQ,
         disease_name: DISEASE_INFO[detectedDisease],
@@ -505,7 +505,7 @@ export default function PlantAssistant() {
     setQuestion("");
     setLoading(true);
 
-    Client.connect("abdallah110/Planet-model")
+    Client.connect("abdallah110/Planet-modell")
       .then((client) =>
         client.predict("/ask_in_disease", {
           question: q,
